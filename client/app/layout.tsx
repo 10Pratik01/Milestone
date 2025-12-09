@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 
 export const metadata: Metadata = {
-  title: "WORKFORGE",
+  title: "Taskorium",
   description: "Project management website created in next app",
 };
 
