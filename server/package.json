@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "rimraf dist && tsc",
+    "start": "node dist/src/index.js",
+    "dev": "nodemon --watch src --ext ts --exec tsx src/index.ts", 
     "seed": "tsx prisma/seed.ts"
   },
   "keywords": [],
@@ -13,16 +15,27 @@
   "type": "module",
   "devDependencies": {
     "@prisma/adapter-pg": "^7.1.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^24.10.2",
     "@types/pg": "^8.15.6",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.11",
     "prisma": "^7.1.0",
+    "rimraf": "^6.1.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
     "@prisma/client": "^7.1.0",
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
     "pg": "^8.16.3"
   }
 }
