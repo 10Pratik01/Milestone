@@ -30,7 +30,17 @@ export const createTask = async (req: Request, res:Response):Promise<void> =>{
     try {
         const newTask = prisma.task.create({
             data:{
-                title, description, status, priority, tags, startDate, dueDate, points, projectId, authorUserId, assignedUserId
+                title, 
+                description, 
+                status, 
+                priority, 
+                tags,
+                startDate,
+                dueDate,
+                points,
+                projectId,
+                authorUserId, 
+                assignedUserId
             }
         }) 
         
