@@ -28,7 +28,7 @@ export interface User {
      userId?: string, 
      username: string, 
      email: string, 
-     profilePicture: string,
+     profilePictureUrl: string,
      cognitoId?: string, 
      teamId?: number
 }
@@ -58,7 +58,7 @@ export interface Task {
     author?: User;
     assignee?: User;
     comments?: Comment[];
-    attachment?: Attachment[]; 
+    attachments?: Attachment[]; 
 }
 
 
@@ -79,10 +79,15 @@ export const api= createApi({
             }),
             invalidatesTags: ["Projects"]
         }), 
-        getTasks: build.query<Task[], {projectId : number}>({
-            query: ({projectId}) => `tasks?projectId=${projectId}`,
-            providesTags: (result) => result ? result.map(({id}) => ({type: "Tasks" as const, id})) : [{type: "Tasks" as const }],
-        }), 
+
+        getTasks: build.query<Task[], { projectId: number }>({
+                query: ({ projectId }) => `tasks?projectId=${projectId}`,
+                providesTags: (result) => 
+                    {if (Array.isArray(result)) {
+                    return result.map(({ id }) => ({ type: "Tasks" as const, id }));
+                    }
+                    return [{ type: "Tasks" as const }]; }// Fallback in case `result` is not an array
+            }),
 
         createTask: build.mutation<Task, Partial<Task>>({
             query: (tasks) => ({
@@ -92,15 +97,18 @@ export const api= createApi({
             }), 
             invalidatesTags:["Tasks"]
         }),
-
-        updateStatus: build.mutation<Task, {taskId : number, status: string}>({
+        
+        updateTaskStatus: build.mutation<Task, {taskId : number, status: string}>({
             query: ({taskId , status}) =>({
                 url: `tasks/${taskId}/status`,
                 method:"PATCH",
-                body:status
+                body:{status}
             }), 
-            invalidatesTags:["Tasks"]
-        })
+            invalidatesTags:(result, error, {taskId}) => [
+                {type: "Tasks", id:taskId},
+            ], 
+        }), 
+
 
     }),
 })
@@ -111,5 +119,6 @@ export const {
     useCreateProjectMutation,
     useGetTasksQuery,
     useCreateTaskMutation,
+    useUpdateTaskStatusMutation, 
 
 } = api; 

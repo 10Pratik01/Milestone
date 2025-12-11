@@ -15,7 +15,7 @@ export const getTask = async (req: Request, res:Response): Promise<void> => {
                 attachments: true, 
             }
         }); 
-        res.status(201).json({tasks, message:"Fetched succesfully"})
+        res.status(201).json(tasks)
     } catch (error:any) {
             res.status(500).json({
                 message:`Error: ${error.message} , Please try again `
@@ -54,6 +54,7 @@ export const createTask = async (req: Request, res:Response):Promise<void> =>{
 export const updateTaskStatus = async (req:Request, res:Response): Promise<void> => {
     const{taskId} = req.params; 
     const {status} = req.body;  
+    console.log(`This status is from the backend : ${status}`)
     try {
         const updatedTask = await prisma.task.update({
             where:{
