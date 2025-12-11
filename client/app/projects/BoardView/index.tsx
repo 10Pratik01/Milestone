@@ -27,10 +27,6 @@ type TasksColumnProps = {
 const BoardView = ({id, setIsModalNewTaskOpen}: BoardProps) => {
     const {data: tasks, isLoading, error} = useGetTasksQuery({projectId: Number(id)})
     const [updateTaskStatus] = useUpdateTaskStatusMutation(); 
-
-    console.log(tasks)
-    
-    console.log(id)
     
     
     const moveTask = (taskId: number, toStatus: string) => {

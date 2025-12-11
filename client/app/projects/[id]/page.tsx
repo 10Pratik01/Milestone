@@ -3,7 +3,7 @@ import React, { useState } from "react"
 import { useParams } from "next/navigation"
 import ProjectHeader from "../ProjectHeader"
 import BoardView from "../BoardView"
-
+import ListView from "../ListView"
 const Project = () => {
     const params = useParams()
     const id = params?.id as string | undefined
@@ -24,6 +24,12 @@ const Project = () => {
             {activeTab === "Board" && (
                 <BoardView id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />
             )}
+
+            {activeTab === "List" && (
+                <ListView id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />
+            )}
+
+
         </div>
     )
 }

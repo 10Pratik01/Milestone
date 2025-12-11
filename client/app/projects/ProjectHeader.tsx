@@ -59,19 +59,22 @@ const ProjectHeader = ({activeTab, setActiveTab }: Props) => {
           </button>
 
           <div className='relative'>
+            
             <input
               type="text"
               placeholder="Search task"
-              className="rounded-md border py-1 pl-10 pr-4 focus:outline-none dark:border-dark-secondary dark:bg-dark-secondary text-white"
+              className="rounded-md border border-gray-300 py-1 pl-10 pr-4 focus:outline-none dark:border-dark-secondary dark:bg-dark-secondary dark:text-white"
               onChange={(e) => setSearchInput(e.target.value)}
             />
-      <Grid3x3
-        className={`absolute left-3 top-2 h-4 w-4 text-gray-400 
-          ${searchInput != "" ? "dark:text-white" : "dark:text-neutral-500"} 
+            <div className='border-r border-gray-500 h-[50%] absolute left-8 top-2'/>
+        <Grid3x3
+        className={`absolute left-2 top-[6.5px] h-4 w-4 scale-150
+          ${searchInput != "" ? "dark:text-white text-blue-300" : "dark:text-neutral-500 text-gray-400"} 
           transition-all duration-300 ease-in-out 
           
         `}
       />
+        
           </div>
         </div>
       </div>
