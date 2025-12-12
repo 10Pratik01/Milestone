@@ -4,7 +4,6 @@ import React, { useEffect } from 'react';
 import Navbar from './(components)/Navbar';
 import Sidebar from './(components)/Sidebar';
 import StoreProvider, { useAppSelector } from './redux';
-import GlobalLoader from './(components)/GlobalLoader';
 
 const DashboardLayout = ({children} : {children: React.ReactNode} ) => {
     const isSidebarCollapsed = useAppSelector((state)=> state.global.isSidebarCollapsed); 
@@ -12,16 +11,11 @@ const DashboardLayout = ({children} : {children: React.ReactNode} ) => {
     
     useEffect(() => {
         const htmlElement = document.documentElement;
-        console.log('isDarkMode:', isDarkMode);
-        console.log('HTML classes before:', htmlElement.className);
-        
         if (isDarkMode) {
             htmlElement.classList.add("dark");
         } else {
             htmlElement.classList.remove("dark");
         }
-        
-        console.log('HTML classes after:', htmlElement.className);
     }, [isDarkMode]);
 
     return(

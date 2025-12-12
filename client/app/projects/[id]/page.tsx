@@ -20,7 +20,7 @@ const Project = () => {
         <div>
             {id}
             {/* Modal new task  */}
-            <ProjectHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+            <ProjectHeader activeTab={activeTab} setActiveTab={setActiveTab} id={id}/>
 
             {activeTab === "Board" && (
                 <BoardView id={id} setIsModalNewTaskOpen={setIsModalNewTaskOpen} />

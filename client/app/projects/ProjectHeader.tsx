@@ -4,11 +4,12 @@ import Header from '../(components)/Header';
 import { Clock, FilterIcon, Grid3x3, List, Share2, Table } from 'lucide-react';
 
 type Props = {
+  id:string
   activeTab: string
   setActiveTab: (tabname: string) => void
 }
  
-const ProjectHeader = ({activeTab, setActiveTab }: Props) => {
+const ProjectHeader = ({activeTab, setActiveTab, id}: Props) => {
   const [isModalNewProjectOpen, setIsModalNewProjectOpen] = useState(false)
   const [searchInput, setSearchInput] = useState(""); 
 
@@ -18,6 +19,7 @@ const ProjectHeader = ({activeTab, setActiveTab }: Props) => {
       <div className='pb-6 pt-6 lg:pb-4 lg:pt-8'>
         <Header name="Product Design Development" />
       </div>
+
       {/* Tabs  */}
       <div className="flex flex-wrap-reverse gap-2 border-y border-gray-200 pb-2 pt-2 dark:border-stroke-dark md:items-center ">
         <div className="flex flex-1 items-center gap-2 md:gap-4 ">
