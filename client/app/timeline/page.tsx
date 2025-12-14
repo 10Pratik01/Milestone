@@ -1,9 +1,11 @@
+"use client"; 
 import Loader from '@/app/(components)/Loader'
 import { useAppSelector } from '@/app/redux'
-import { useGetTasksQuery } from '@/state/api'
-import {DisplayOption, Gantt, TaskType, ViewMode} from "@wamra/gantt-task-react"
-import React, { useMemo, useState } from 'react'
+import { useGetProjectsQuery } from '@/state/api'
+import {DisplayOption, Gantt, ViewMode} from "@wamra/gantt-task-react"
+import React, { useMemo, useRef, useState } from 'react'
 import "@wamra/gantt-task-react/dist/style.css";
+import Header from "@/app/(components)/Header"
 
 type Props = {
      id: string
@@ -12,33 +14,33 @@ type Props = {
 
 type TaskTypeItems = "task" | "milestone" | "project"; 
 
-const TimeLine = ({id, setIsModalNewTaskOpen}: Props) => {
+const TimeLine = ({ setIsModalNewTaskOpen}: Props) => {
 
     const isDarkMode = useAppSelector((state) => state.global.isDarkMode)
-    const {data: tasks, error, isLoading } = useGetTasksQuery({projectId : Number(id)})
+    const {data: projects, error, isLoading } = useGetProjectsQuery()
 
     const [displayOptions, setDisplayOptions] = useState<DisplayOption>({
         viewMode: ViewMode.Month, 
         // locale: "en-US"
     })
+    
 
       
 
 
     const ganttTask = useMemo(() => {
-        return (
-            tasks?.map((task) => (
-               {
-                 start: new Date(task.startDate as string),
-                 end: new Date(task.dueDate as string), 
-                 name: task.title,
-                 id: `Task-${task.id}`, 
-                 type: 'task' as TaskTypeItems, 
-                 progress: task.points ?  ( task.points / 10) * 100 : 0,
-                 isDisabled: false,
-               })) || [] 
-        )
-    }, [tasks]);
+    return (
+      projects?.map((project) => ({
+        start: new Date(project.startDate as string),
+        end: new Date(project.endDate as string),
+        name: project.name,
+        id: `Project-${project.id}`,
+        type: "project" as TaskTypeItems,
+        progress: 50,
+        isDisabled: false,
+      })) || []
+    );
+  }, [projects]);
 
     if (isLoading)
     return (
@@ -64,18 +66,20 @@ const TimeLine = ({id, setIsModalNewTaskOpen}: Props) => {
 
     return (
     <div className='px-4 xl:px-6 '>
-      <div className='flex flex-wrap items-center justify-between gap-2 py-5'>
-        <h1 className='me-2 text-lg font-bold dark:text-white '>
-          TimeLine
-        </h1>
-        <div className='relative inline-block w-64'>
-          <select onChange={handleViewModeChange} value={displayOptions.viewMode} className='focus:shadow-outline block w-full appearance-none rounded border border-gray-400 bg-white dark:bg-gray-600 px-4 py-2 pr-8 leading-tight shadow hover:border-gray-500 focus:outline-none dark:border-dark-secondary dark:text-white'>
+      <header className="mb-4 flex items-center justify-between">
+        <Header name="Projects Timeline" />
+        <div className="relative inline-block w-64">
+          <select
+            className="focus:shadow-outline block w-full appearance-none rounded border border-gray-400 bg-white px-4 py-2 pr-8 leading-tight shadow hover:border-gray-500 focus:outline-none dark:border-dark-secondary dark:bg-dark-secondary dark:text-white"
+            value={displayOptions.viewMode}
+            onChange={handleViewModeChange}
+          >
             <option value={ViewMode.Day}>Day</option>
             <option value={ViewMode.Week}>Week</option>
             <option value={ViewMode.Month}>Month</option>
           </select>
         </div>
-      </div>
+      </header>
 
       <div className='overflow-hidden rounded-md bg-white shadow dark:bg-dark-secondary dark:text-white'>
 
