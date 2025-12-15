@@ -38,25 +38,33 @@ const Search = () => {
         {isLoading && <div className='translate-y-[-200px] '><div><Loader/></div></div>}
         {isError && <p>An error occured fetching search</p>}
         {!isLoading && !isError && searchResults && (
-          <div> 
+          <div className=''> 
             {searchResults.tasks && searchResults.tasks?.length > 0 && (
               <h2> Tasks</h2>
             )}
-            {searchResults.tasks?.map((task) => (
-              <TaskCard key={task.id} task={task}/> 
-            ))}
+           
+              {searchResults.tasks?.map((task) => (
+                <div className='my-3'  key={task.id}> <TaskCard task={task}/></div>
+              ))}
+            
             {searchResults.projects && searchResults.projects?.length > 0 && (
               <h2> projects</h2>
             )}
-            {searchResults.projects?.map((project) => (
-              <ProjectCard key={project.id} project={project}/> 
-            ))}
+            
+              {searchResults.projects?.map((project) => (
+                <div className='my-3' key={project.id}>
+                  <ProjectCard  project={project}/> 
+                </div>
+              ))}
+           
             {searchResults.users && searchResults.users?.length > 0 && (
               <h2> User</h2>
             )}
-            {searchResults.users?.map((user) => (
-              <UserCard key={user.userId} user={user}/> 
-            ))}
+            
+              {searchResults.users?.map((user) => (
+                <div className='my-3' key={user.userId}><UserCard  user={user}/>  </div>
+              ))}
+           
           </div>
         ) }
       </div> 

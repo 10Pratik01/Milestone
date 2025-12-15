@@ -8,6 +8,7 @@ import morgan from "morgan";
 // routes import
 import projectRoutes from './routes/projectRoutes.js'
 import taskRouter from "./routes/taskRoutes.js";
+import searchRoutes from "./routes/searchRoutes.js";
 
 
 // Route import 
@@ -32,6 +33,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use("/projects", projectRoutes); 
 app.use("/tasks", taskRouter); 
+app.use('/search', searchRoutes); 
  
 const port = process.env.PORT || 3000
 app.listen(port, () => {
