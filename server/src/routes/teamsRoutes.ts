@@ -3,6 +3,6 @@ import { getTeams } from "../controllers/teamController.js";
 
 const teamRoutes = Router(); 
 
-teamRoutes.get("/", getTeams);
+teamRoutes.get("/everyone", getTeams);
 
 export default teamRoutes; 

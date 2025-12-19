@@ -38,7 +38,7 @@ const SidebarNavLinks = [
     { 
         icon:Users, 
         label:"Teams", 
-        href: "/Teams",
+        href: "/teams",
     }, 
 
     

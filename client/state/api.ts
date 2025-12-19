@@ -131,7 +131,7 @@ export const api= createApi({
         }), 
 
         getTeams: build.query<Team[], void>({
-            query: () => `teams`, 
+            query: () => `teams/everyone`, 
             providesTags: ["Teams"]
         })
 
@@ -148,4 +148,5 @@ export const {
     useUpdateTaskStatusMutation, 
     useSearchQueryQuery, 
     useGetUsersQuery, 
+    useGetTeamsQuery,
 } = api; 

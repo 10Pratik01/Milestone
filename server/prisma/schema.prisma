@@ -28,7 +28,7 @@ model Team{
   id Int @id @default(autoincrement())
   teamName String
   productOwnerUserId Int? 
-  productManagerUserId Int?  
+  projectManagerUserId Int?  
   projectTeams ProjectTeam[] 
   user User[] 
 
