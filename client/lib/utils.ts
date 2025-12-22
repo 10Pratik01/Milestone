@@ -1,5 +1,5 @@
 export const dataGridClassNames =
-  "border border-gray-200 bg-white shadow ";
+  "border border-gray-200 bg-white dark:bg-black shadow ";
 
 export const dataGridSxStyles = (isDarkMode: boolean) => {
   return {

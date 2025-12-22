@@ -89,8 +89,7 @@ const TimeLine = ({ setIsModalNewTaskOpen}: Props) => {
         <div className='timeline'>
          <Gantt
             tasks={ganttTask}
-            {...displayOptions}
-            
+            {...displayOptions}      
           />
         </div>
 

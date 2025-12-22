@@ -13,8 +13,7 @@ import { GridColDef } from '@mui/x-data-grid';
 const Users = () => {
     const {data:teams, isLoading, isError} = useGetTeamsQuery(); 
     const isDarkMode = useAppSelector((state) => state.global.isDarkMode)
-
-    console.log(teams)
+    
 
     if (isLoading)
     return (

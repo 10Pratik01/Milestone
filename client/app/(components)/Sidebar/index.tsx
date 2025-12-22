@@ -13,7 +13,7 @@ const SidebarNavLinks = [
     { 
         icon:Home, 
         label:"Home", 
-        href: "/",
+        href: "/home",
     }, 
     { 
         icon: Briefcase, 

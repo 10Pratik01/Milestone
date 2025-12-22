@@ -9,6 +9,7 @@ const DashboardLayout = ({children} : {children: React.ReactNode} ) => {
     const isSidebarCollapsed = useAppSelector((state)=> state.global.isSidebarCollapsed); 
     const isDarkMode = useAppSelector((state) => state.global.isDarkMode); 
     
+    
     useEffect(() => {
         const htmlElement = document.documentElement;
         if (isDarkMode) {
