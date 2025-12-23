@@ -52,7 +52,7 @@ const PriorityLinks = [
     }, 
    { 
         icon:ShieldAlert, 
-        label:"Hight", 
+        label:"High", 
         href: "/priority/high",
     }, 
    { 

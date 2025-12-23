@@ -12,6 +12,7 @@ import {
   useGetTasksByUserQuery,
 } from "@/state/api";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { PlusSquare } from "lucide-react";
 import React, { useState } from "react";
 
 type Props = {
@@ -97,65 +98,100 @@ const  ReusablePriorityPage = ({ priority }: Props) => {
   if (isTasksError || !tasks) return <div>Error fetching tasks</div>;
 
   return (
-    <div className="m-5 p-4">
-      <ModalNewTask
-        isOpen={isModalNewTaskOpen}
-        onClose={() => setIsModalNewTaskOpen(false)}
-      />
-      <Header
-        name="Priority Page"
-        buttonComponent={
-          <button
-            className="mr-3 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-            onClick={() => setIsModalNewTaskOpen(true)}
-          >
-            Add Task
-          </button>
-        }
-      />
-      <div className="mb-4 flex justify-start">
-        <button
-          className={`px-4 py-2 ${
-            view === "list" ? "bg-gray-300" : "bg-white"
-          } rounded-l`}
-          onClick={() => setView("list")}
-        >
-          List
-        </button>
-        <button
-          className={`px-4 py-2 ${
-            view === "table" ? "bg-gray-300" : "bg-white"
-          } rounded-l`}
-          onClick={() => setView("table")}
-        >
-          Table
-        </button>
+  <div className="mx-6 my-5">
+    <ModalNewTask
+      isOpen={isModalNewTaskOpen}
+      onClose={() => setIsModalNewTaskOpen(false)}
+    />
+
+    {/* Header */}
+    <div className="mb-6 flex items-center justify-between">
+      <div>
+        <Header name={`${priority} Priority Tasks`} />
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Manage and track tasks with {priority} priority
+        </p>
       </div>
-      {isLoading ? (
-        <div>Loading tasks...</div>
-      ) : view === "list" ? (
-        <div className="grid grid-cols-1 gap-4">
-          {filteredTasks?.map((task: Task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
-        </div>
-      ) : (
-        view === "table" &&
-        filteredTasks && (
-          <div className="z-0 w-full">
-            <DataGrid
-              rows={filteredTasks}
-              columns={columns}
-              checkboxSelection
-              getRowId={(row) => row.id}
-              className={dataGridClassNames}
-              sx={dataGridSxStyles(isDarkMode)}
-            />
-          </div>
-        )
-      )}
+
+      <button
+        onClick={() => setIsModalNewTaskOpen(true)}
+        className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
+      >
+        <PlusSquare className="h-4 w-4" />
+        Add Task
+      </button>
     </div>
-  );
+
+    {/* View Toggle */}
+    <div className="mb-6 inline-flex overflow-hidden rounded-lg border dark:border-gray-700">
+      <button
+        onClick={() => setView("list")}
+        className={`flex items-center gap-2 px-4 py-2 text-sm transition
+          ${view === "list"
+            ? "bg-blue-600 text-white"
+            : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"}
+        `}
+      >
+        List
+      </button>
+
+      <button
+        onClick={() => setView("table")}
+        className={`flex items-center gap-2 px-4 py-2 text-sm transition
+          ${view === "table"
+            ? "bg-blue-600 text-white"
+            : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-black dark:text-gray-300 dark:hover:bg-gray-800"}
+        `}
+      >
+        Table
+      </button>
+    </div>
+
+    {/* Content */}
+    {isLoading ? (
+      <div className="flex h-40 items-center justify-center">
+        Loading tasks…
+      </div>
+    ) : filteredTasks?.length === 0 ? (
+      <div className="flex h-48 flex-col items-center justify-center rounded-xl border border-dashed text-center dark:border-gray-700">
+        <h2 className="text-lg font-semibold">
+          No {priority} priority tasks 🎉
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">
+          You’re all caught up. Add a new task if needed.
+        </p>
+      </div>
+    ) : view === "list" ? (
+      <div className="flex flex-wrap  gap-10 ">
+        {filteredTasks?.map((task: Task) => (
+          <TaskCard key={task.id} task={task} />
+        ))}
+      </div>
+    ) : (
+      <div className="rounded-xl bg-white p-4 shadow dark:bg-dark-secondary">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+            Tasks Table
+          </h3>
+          <span className="text-xs text-gray-500">
+            {filteredTasks?.length} tasks
+          </span>
+        </div>
+
+        <DataGrid
+          rows={filteredTasks}
+          columns={columns}
+          checkboxSelection
+          getRowId={(row) => row.id}
+          className={dataGridClassNames}
+          sx={dataGridSxStyles(isDarkMode)}
+          autoHeight
+        />
+      </div>
+    )}
+  </div>
+);
+
 };
 
 export default ReusablePriorityPage;
