@@ -3,7 +3,7 @@ import Loader from '@/app/(components)/Loader'
 import { useAppSelector } from '@/app/redux'
 import { useGetProjectsQuery } from '@/state/api'
 import {DisplayOption, Gantt, ViewMode} from "@wamra/gantt-task-react"
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import "@wamra/gantt-task-react/dist/style.css";
 import Header from "@/app/(components)/Header"
 
