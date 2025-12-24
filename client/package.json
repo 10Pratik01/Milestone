@@ -28,7 +28,9 @@
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "19.2.0",
+    "react-parallax": "^3.5.2",
     "react-redux": "^9.2.0",
+    "react-scroll-parallax": "^3.5.0",
     "recharts": "^3.5.1",
     "redux-persist": "^6.0.0",
     "styled-components": "^6.1.19"

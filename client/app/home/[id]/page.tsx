@@ -99,7 +99,7 @@ const SelectedProject = () => {
       </div>
       <div className='my-2 mx-5 border border-gray-700 dark:border-black' />
 
-      <div className="container h-full w-full bg-gray-100 p-8 ">
+      <div className="container h-full w-full bg-gray-100 dark:bg-zinc-900 p-8 ">
         <div className='flex justify-between'> 
           <Header name='Project Dashboard' /> 
           <div className='h-full w-40 gap-2 flex py-2 px-5 border text-white border-blue-600 bg-blue-primary rounded-md cursor-pointer hover:bg-blue-700 hover:border-blue-700'>
