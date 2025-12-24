@@ -13,7 +13,7 @@ export default function Home() {
 
   return (
      <div className="relative w-full overflow-x-hidden bg-background">
-      <section className="relative h-250 w-full flex flex-col overflow-hidden">
+      <section className="relative h-100 w-full flex flex-col overflow-hidden">
         <div className={` h-[120vh] w-full flex flex-col  overflow-hidden select-none `} >
           <div className="absolute inset-0 w-full h-full overflow-hidden opacity-90 ">
             <div className="absolute top-0 left-0 w-full h-full blur-md scale-120 select-none translate-x-35">
@@ -28,10 +28,8 @@ export default function Home() {
             transition={{ duration: 0.8 }}
              className= "mt-20 w-full pl-20 flex flex-col justify-center items-start ">
                   <h1 className="text-blue-300 text-[50px] w-full md:text-[90px] flex justify-center -translate-x-10 md:-translate-x-5 -mb-2.5 font-semibold">Taskorium</h1>
-                  <p className="text-blue-800 w-full dark:text-gray-400 text-[8px] md:text-[15px] flex justify-center">Your personalized project management plactform</p>
+                  <p className="text-blue-300 font-bold opacity-100 w-full dark:text-blue-300 text-[8px] md:text-[25px] flex justify-center">Your personalized project management plactform</p>
               </motion.div>
-            {/* Image */}
-
           </div>
         </div>
       </section>
@@ -40,7 +38,7 @@ export default function Home() {
 {/* Features section */}
 <section className="relative w-full overflow-hidden">
   {/* Slanted divider */}
-  <div className="h-12 w-full relative">
+  <div className="h-1 w-full relative">
     <div className="absolute inset-x-0 top-0 h-16 bg-gray-500 rotate-0 scale-x-110" />
   </div>
 

@@ -18,7 +18,7 @@ export const ThreeDMarquee = ({
   return (
     <div
       className={cn(
-        "mx-auto block h-[180vh] overflow-hidden  select-none rounded-2xl max-sm:h-100",
+        "mx-auto block h-[180vh] overflow-hidden pointer-events-none select-none rounded-2xl max-sm:h-100",
         className,
       )}
     >

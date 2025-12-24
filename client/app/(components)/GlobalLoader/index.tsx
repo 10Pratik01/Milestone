@@ -18,7 +18,7 @@ export default function GlobalLoader() {
   if (!loading) return null;
 
   return (
-        <div className="h-screen w-screen">
+        <div className="h-screen w-screen -translate-y-20">
             <Loader />
         </div>
     );
