@@ -16,7 +16,7 @@ export default function Home() {
       <section className="relative h-100 w-full flex flex-col overflow-hidden">
         <div className={` h-[120vh] w-full flex flex-col  overflow-hidden select-none `} >
           <div className="absolute inset-0 w-full h-full overflow-hidden opacity-90 ">
-            <div className="absolute top-0 left-0 w-full h-full blur-md scale-120 select-none translate-x-35">
+            <div className="absolute top-0 left-0 w-full h-full blur-md scale-120 select-none md:translate-x-35">
               <Background3D />
             </div>
           </div>
@@ -36,7 +36,7 @@ export default function Home() {
 
     {/* Features section */}
 {/* Features section */}
-<section className="relative w-full overflow-hidden">
+<section className="relative w-full mb-10 md:mb-1  overflow-hidden">
   {/* Slanted divider */}
   <div className="h-1 w-full relative">
     <div className="absolute inset-x-0 top-0 h-16 bg-gray-500 rotate-0 scale-x-110" />
@@ -74,10 +74,11 @@ export default function Home() {
      
 
 
-       <div>
+       <div  >
         <div className=" h-20 w-full flex justify-start items-center relative ">
           <div className={`w-full h-30 scale-170 bg-gray-500 rotate-3`} />
         </div>
+        <div className="mt-14"/>
         <HeroSection/>
         <div className=" h-20 w-full flex justify-start items-center relative ">
           <div className={`w-full h-30 scale-170 bg-gray-500 rotate-3`} />
