@@ -74,7 +74,7 @@ export default function Home() {
      
 
 
-       <div  >
+       <div>
         <div className=" h-20 w-full flex justify-start items-center relative ">
           <div className={`w-full h-30 scale-170 bg-gray-500 rotate-3`} />
         </div>
