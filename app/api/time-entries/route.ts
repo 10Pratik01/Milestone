@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     });
 
     // Calculate total hours
-    const totalHours = timeEntries.reduce((sum, entry) => sum + entry.hours, 0);
+    const totalHours = timeEntries.reduce((sum: number, entry: any) => sum + entry.hours, 0);
 
     return successResponse({
       timeEntries,
