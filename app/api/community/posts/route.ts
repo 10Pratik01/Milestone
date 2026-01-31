@@ -55,7 +55,7 @@ export async function GET(request: Request) {
     // Enhance posts with user's vote status and vote counts
     // Note: To do this properly, we should aggregate UP/DOWN votes separately
     // But for now simple count is okay, and we check if user voted
-    const enhancedPosts = posts.map((post) => ({
+    const enhancedPosts = posts.map((post: any) => ({
       ...post,
       userVote: post.votes[0]?.type || null,
       votes: undefined, // Remove the raw votes array
