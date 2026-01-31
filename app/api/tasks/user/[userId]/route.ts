@@ -8,13 +8,14 @@ import { successResponse, errorResponse, unauthorizedError } from "@/lib/api-res
  */
 export async function GET(
   request: Request,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     const { userId: clerkId } = await auth();
     if (!clerkId) return unauthorizedError();
 
-    const userId = Number(params.userId);
+    const { userId: userIdStr } = await params;
+    const userId = Number(userIdStr);
     if (isNaN(userId)) {
       return errorResponse("Invalid user ID", 400);
     }

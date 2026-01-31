@@ -8,13 +8,14 @@ import { successResponse, errorResponse, unauthorizedError, notFoundError } from
  */
 export async function GET(
   request: Request,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
   try {
     const { userId: clerkId } = await auth();
     if (!clerkId) return unauthorizedError();
 
-    const postId = Number(params.postId);
+    const { postId: postIdStr } = await params;
+    const postId = Number(postIdStr);
     if (isNaN(postId)) {
       return errorResponse("Invalid post ID", 400);
     }

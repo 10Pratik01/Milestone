@@ -10,7 +10,7 @@ import { logActivity } from "@/lib/activity";
  */
 export async function PATCH(
   request: Request,
-  { params }: { params: { taskId: string } }
+  { params }: { params: Promise<{ taskId: string }> }
 ) {
   try {
     const { userId: clerkId } = await auth();
@@ -25,7 +25,8 @@ export async function PATCH(
       return errorResponse("User not found", 404);
     }
 
-    const taskId = Number(params.taskId);
+    const { taskId: taskIdStr } = await params;
+    const taskId = Number(taskIdStr);
     if (isNaN(taskId)) {
       return errorResponse("Invalid task ID", 400);
     }

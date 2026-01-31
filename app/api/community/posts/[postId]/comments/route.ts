@@ -11,7 +11,7 @@ import { pusherServer } from "@/lib/pusher";
  */
 export async function POST(
   request: Request,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
   try {
     const { userId: clerkId } = await auth();
@@ -25,7 +25,8 @@ export async function POST(
       return errorResponse("User not found", 404);
     }
 
-    const postId = Number(params.postId);
+    const { postId: postIdStr } = await params;
+    const postId = Number(postIdStr);
 
     const body = await request.json();
     // Inject postId into body for validation
