@@ -178,7 +178,7 @@ export async function POST(request: Request) {
     const project = await prisma.project.create({
       data: {
         name,
-        description,
+        description: description || "",
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
         status: status || "active",
