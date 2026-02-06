@@ -1,9 +1,9 @@
 "use client"; 
 import Loader from '@/app/(components)/Loader'
 import { useAppSelector } from '@/app/redux'
-import { useGetProjectsQuery } from '@/state/api'
+import { getProjects } from "@/actions/projects";
 import {DisplayOption, Gantt, ViewMode} from "@wamra/gantt-task-react"
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import "@wamra/gantt-task-react/dist/style.css";
 import Header from "@/app/(components)/Header"
 
@@ -17,7 +17,25 @@ type TaskTypeItems = "task" | "milestone" | "project";
 const TimeLine = ({ setIsModalNewTaskOpen}: Props) => {
 
     const isDarkMode = useAppSelector((state) => state.global.isDarkMode)
-    const {data: projects, error, isLoading } = useGetProjectsQuery()
+    const [projects, setProjects] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                setIsLoading(true)
+                const data = await getProjects()
+                setProjects(data)
+            } catch (err) {
+                setError("Error loading projects")
+                console.error(err)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        fetchProjects()
+    }, [])
 
     const [displayOptions, setDisplayOptions] = useState<DisplayOption>({
         viewMode: ViewMode.Month, 
@@ -47,13 +65,13 @@ const TimeLine = ({ setIsModalNewTaskOpen}: Props) => {
     if (isLoading)
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-muted-foreground h-full w-full mt-2"><Loader/></div>
+        <Loader/>
       </div>
     )
   if (error)
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-destructive">Error loading tasks</div>
+        <div className="text-destructive">Error loading projects</div>
       </div>
     )
 

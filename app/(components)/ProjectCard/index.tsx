@@ -1,8 +1,9 @@
-import { Project } from '@/state/api'
+import { Project } from '@prisma/client'
 import React from 'react'
+import { format } from 'date-fns'
 
 type Props = {
-    project:Project
+    project: Project
 }
 
 const ProjectCard = ({project}: Props) => {
@@ -10,8 +11,8 @@ const ProjectCard = ({project}: Props) => {
     <div className='rounded border p-4 shadow'>
         <h3>{project.name}</h3>
         <p>{project.description}</p>
-        <p>{project.startDate}</p>
-        <p>{project.endDate}</p>
+        <p>Start Date: {project.startDate ? format(new Date(project.startDate), 'P') : 'Not set'}</p>
+        <p>End Date: {project.endDate ? format(new Date(project.endDate), 'P') : 'Not set'}</p>
     </div>
   )
 }

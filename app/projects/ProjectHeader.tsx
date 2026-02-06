@@ -1,8 +1,9 @@
 import React, {useState } from 'react'
 import Header from '../(components)/Header';
-import { Clock, FilterIcon, Grid3x3, List, PlusSquare, Share2, Table } from 'lucide-react';
+import { Clock, FilterIcon, Grid3x3, List, PlusSquare, Share2, Table, UserPlus } from 'lucide-react';
 import ModalNewProject from './ModalNewProject';
 import ModalNewTask from '../(components)/ModalNewTask';
+import ModalInvitePeople from '../(components)/ModalInvitePeople';
 
 type Props = {
   id:string
@@ -14,6 +15,7 @@ const ProjectHeader = ({activeTab, setActiveTab, id}: Props) => {
   
   const [isModalNewProjectOpen, setIsModalNewProjectOpen] = useState(false)
   const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false)
+  const [isModalInviteOpen, setIsModalInviteOpen] = useState(false)
   
   const [searchInput, setSearchInput] = useState(""); 
 
@@ -24,16 +26,22 @@ const ProjectHeader = ({activeTab, setActiveTab, id}: Props) => {
       
       <ModalNewTask id={id}  isOpen={isModalNewTaskOpen} onClose={() => setIsModalNewTaskOpen(false)} />
 
+      <ModalInvitePeople isOpen={isModalInviteOpen} onClose={() => setIsModalInviteOpen(false)} projectId={id} />
 
-      <div className='pb-6 pt-6 lg:pb-4 lg:pt-8 flex'>
+
+      <div className='pb-6 pt-6 lg:pb-4 lg:pt-8 space-y-7 md:flex  space-x-5'>
         <Header name="Product Design Development" buttonComponent={
           <button className='flex items-center rounded-md bg-blue-primary px-3 py-2 text-white hover:bg-blue-600' onClick={() => setIsModalNewProjectOpen(true)}>
             <PlusSquare className='h-5 w-5 mr-2'/> New Project
           </button>
         }/>
-        <button className='flex w-35 h-fit mx-5 items-center rounded-md bg-blue-primary px-3 py-2 text-white hover:bg-blue-600' onClick={() => setIsModalNewTaskOpen(true)}>
+        <button className='flex w-40 mb-0 h-fit items-center rounded-md bg-blue-primary px-3 py-2 text-white hover:bg-blue-600' onClick={() => setIsModalNewTaskOpen(true)}>
             <PlusSquare className='h-5 w-5 mr-2'/> Add Task
           </button>
+
+        <button className='flex w-35 h-fit items-center rounded-md bg-blue-primary px-3 py-2 text-white hover:bg-blue-600' onClick={() => setIsModalInviteOpen(true)}>
+            <UserPlus className='h-5 w-5 mr-2'/> Invite
+        </button>
       </div>
 
       {/* Tabs  */}

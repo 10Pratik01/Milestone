@@ -1,21 +1,40 @@
 import Loader from '@/app/(components)/Loader'
 import { useAppSelector } from '@/app/redux'
-import { useGetTasksQuery } from '@/state/api'
 import {DisplayOption, Gantt, TaskType, ViewMode} from "@wamra/gantt-task-react"
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import "@wamra/gantt-task-react/dist/style.css";
+import { getTasks } from '@/actions/tasks';
 
 type Props = {
      id: string
     setIsModalNewTaskOpen: (isOpen: boolean) => void
+    setIsModalTaskDetailsOpen: (taskId: number) => void
 }
 
 type TaskTypeItems = "task" | "milestone" | "project"; 
 
-const TimeLine = ({id, setIsModalNewTaskOpen}: Props) => {
+const TimeLine = ({id, setIsModalNewTaskOpen, setIsModalTaskDetailsOpen}: Props) => {
 
     const isDarkMode = useAppSelector((state) => state.global.isDarkMode)
-    const {data: tasks, error, isLoading } = useGetTasksQuery({projectId : Number(id)})
+    const [tasks, setTasks] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                setIsLoading(true)
+                const data = await getTasks(Number(id))
+                setTasks(data)
+            } catch (err) {
+                setError("Error loading tasks")
+                console.error(err)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        fetchTasks()
+    }, [id])
 
     const [displayOptions, setDisplayOptions] = useState<DisplayOption>({
         viewMode: ViewMode.Month, 
@@ -84,7 +103,12 @@ const TimeLine = ({id, setIsModalNewTaskOpen}: Props) => {
          <Gantt
             tasks={ganttTask}
             {...displayOptions}
-            
+            onClick={(task) => {
+                const taskId = parseInt(task.id.replace("Task-", ""));
+                if (!isNaN(taskId)) {
+                    setIsModalTaskDetailsOpen(taskId);
+                }
+            }}
           />
         </div>
 

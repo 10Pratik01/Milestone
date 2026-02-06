@@ -1,75 +1,92 @@
-"use client"; 
-import { useSearchQueryQuery } from '@/state/api';
+"use client";
+
+import { search } from '@/actions/search';
+import Header from "@/app/(components)/Header";
+import ProjectCard from "@/app/(components)/ProjectCard";
+import TaskCard from "@/app/(components)/TaskCard";
+import UserCard from "@/app/(components)/UserCard";
 import { debounce } from "lodash";
-import React, { useEffect, useState } from 'react'
-import Header from '../(components)/Header';
-import Loader from '../(components)/Loader';
-import TaskCard from '../(components)/TaskCard';
-import ProjectCard from '../(components)/ProjectCard';
-import UserCard from '../(components)/UserCard';
-
-
+import React, { useEffect, useState } from "react";
 
 const Search = () => {
-    const [searchTerm, setSearchTerm] = useState(""); 
-    const {data: searchResults  ,isLoading,  isError} = useSearchQueryQuery(searchTerm, {
-        skip: searchTerm.length < 3,
-    }); 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<{ tasks?: any[], projects?: any[], users?: any[] }>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
-    const handleSearch = debounce(
-      (e : React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value); 
-      }, 500,
-    ); 
+  const handleSearch = async (term: string) => {
+       if (!term || term.length < 3) return;
+       setIsLoading(true);
+       try {
+           const results = await search(term);
+           setSearchResults(results);
+           setIsError(false);
+       } catch(e) {
+           console.error("Search failed", e);
+           setIsError(true);
+       } finally {
+           setIsLoading(false);
+       }
+  }
 
-    console.log(searchTerm)
+  useEffect(() => {
+    const delaySearch = setTimeout(() => {
+        if(searchTerm) {
+          handleSearch(searchTerm)
+        } else {
+            setSearchResults({})
+        }
+    }, 500)
+    return () => clearTimeout(delaySearch)
+  }, [searchTerm])
 
-    useEffect(() => {
-      return handleSearch.cancel; 
-    }, [handleSearch.cancel])
-
-  return ( 
-    <div className='p-8'>
+  return (
+    <div className="p-8">
       <Header name="Search" />
-      <div className=''>
-        <input type="text" placeholder='Search....' className='w-1/2 rounded border p-3 shadow' onChange={handleSearch}/>
+      <div>
+        <input
+          type="text"
+          placeholder="Search..."
+          className="w-1/2 rounded border p-3 shadow"
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
-      <div className='p-5'>
-        {isLoading && <div className='translate-y-[-200px] '><div><Loader/></div></div>}
-        {isError && <p>An error occured fetching search</p>}
+      <div className="p-5">
+        {isLoading && <p>Loading...</p>}
+        {isError && <p>Error occurred while fetching search results.</p>}
         {!isLoading && !isError && searchResults && (
-          <div className=''> 
-            {searchResults.tasks && searchResults.tasks?.length > 0 && (
-              <h2> Tasks</h2>
+          <div>
+            {searchResults.tasks && searchResults.tasks.length > 0 && (
+              <h2 className="mb-2 text-2xl font-bold dark:text-white">Tasks</h2>
             )}
-           
-              {searchResults.tasks?.map((task) => (
-                <div className='my-3'  key={task.id}> <TaskCard task={task}/></div>
+            <div className="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+              {searchResults.tasks?.map((task: any) => (
+                <TaskCard key={task.id} task={task} />
               ))}
-            
-            {searchResults.projects && searchResults.projects?.length > 0 && (
-              <h2> projects</h2>
-            )}
-            
-              {searchResults.projects?.map((project) => (
-                <div className='my-3' key={project.id}>
-                  <ProjectCard  project={project}/> 
-                </div>
-              ))}
-           
-            {searchResults.users && searchResults.users?.length > 0 && (
-              <h2> User</h2>
-            )}
-            
-              {searchResults.users?.map((user) => (
-                <div className='my-3' key={user.userId}><UserCard  user={user}/>  </div>
-              ))}
-           
-          </div>
-        ) }
-      </div> 
-    </div>
-  )
-}
+            </div>
 
-export default Search
+            {searchResults.projects && searchResults.projects.length > 0 && (
+              <h2 className="mb-2 text-2xl font-bold dark:text-white"> Projects</h2>
+            )}
+            <div className="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+              {searchResults.projects?.map((project: any) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
+
+            {searchResults.users && searchResults.users.length > 0 && (
+              <h2 className="mb-2 text-2xl font-bold dark:text-white"> Users</h2>
+            )}
+            <div className="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+              {searchResults.users?.map((user: any) => (
+                <UserCard key={user.userId} user={user} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Search;

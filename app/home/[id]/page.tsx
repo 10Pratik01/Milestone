@@ -1,13 +1,16 @@
 "use client"
+import { getProjects } from '@/actions/projects';
+import { getTasks } from '@/actions/tasks';
 import Header from '@/app/(components)/Header';
 import Loader from '@/app/(components)/Loader';
 import { useAppSelector } from '@/app/redux';
 import { dataGridClassNames, dataGridSxStyles } from '@/lib/utils';
-import { Priority, Project, Task, useGetProjectsQuery, useGetTasksQuery } from '@/state/api';
+import { Project, Task } from '@prisma/client';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { NotebookIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import HomePage from '../page';
 
@@ -17,8 +20,43 @@ const SelectedProject = () => {
   const { id } = useParams<{ id: string }>()
   const projectId = Number(id)
   
-  const {data: tasks, isLoading: tasksLoading, isError: taskError} = useGetTasksQuery({projectId}); 
-  const {data: projects, isLoading: projectsLoading, isError: projectError} = useGetProjectsQuery(); 
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [tasksLoading, setTasksLoading] = useState(true)
+  const [projectsLoading, setProjectsLoading] = useState(true)
+  const [taskError, setTaskError] = useState(false)
+  const [projectError, setProjectError] = useState(false)
+
+  useEffect(() => {
+      const fetchTasks = async () => {
+          try {
+              setTasksLoading(true)
+              const data = await getTasks(projectId)
+              setTasks(data)
+          } catch (error) {
+              setTaskError(true)
+          } finally {
+              setTasksLoading(false)
+          }
+      }
+      
+      const fetchProjects = async () => {
+          try {
+              setProjectsLoading(true)
+              const data = await getProjects()
+              setProjects(data)
+          } catch (error) {
+              setProjectError(true)
+          } finally {
+              setProjectsLoading(false)
+          }
+      }
+
+      if (projectId) {
+          fetchTasks()
+      }
+      fetchProjects()
+  }, [projectId])
 
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode); 
 
@@ -42,7 +80,8 @@ const SelectedProject = () => {
   const priorityCount = (tasks || []).reduce(
     (acc: Record<string, number>, task:Task) => {
       const {priority} = task; 
-      acc[priority as Priority] = (acc[priority as Priority] || 0) + 1; 
+      const p = priority as string // Cast to string as Priority enum is gone
+      acc[p] = (acc[p] || 0) + 1; 
       return acc; 
     }, { }
   ); 

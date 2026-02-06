@@ -7,12 +7,13 @@ import { HeroSection } from "./(components)/LandingUI/HeroSection";
 import { Background3D } from "./(components)/LandingUI/Background";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion"
+import Footer from "./(components)/Footer";
 
 
 export default function Home() {  
 
   return (
-     <div className="relative w-full overflow-x-hidden bg-background">
+     <div className="relative w-full overflow-x-hidden bg-background flex flex-col min-h-screen">
       <section className="relative h-100 w-full flex flex-col overflow-hidden">
         <div className={` h-[120vh] w-full flex flex-col  overflow-hidden select-none `} >
           <div className="absolute inset-0 w-full h-full overflow-hidden opacity-90 ">
@@ -85,9 +86,7 @@ export default function Home() {
         </div>
       </div>
 
-      
-      {/* dummy div  */}
-      <div className="h-screen border-t border-t-amber-200" />
+      <Footer />
     </div>
   )
 }

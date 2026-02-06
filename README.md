@@ -139,7 +139,8 @@ The application uses Prisma ORM with PostgreSQL and includes the following model
    Create a `.env.local` file in the `client` directory:
 
    ```env
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+   CLERK_SECRET_KEY=sk_test_...
    ```
 
 4. **Set up the database**

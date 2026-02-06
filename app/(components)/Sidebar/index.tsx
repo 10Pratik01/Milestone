@@ -1,12 +1,12 @@
 "use client"; 
 import { useAppDispatch, useAppSelector } from '@/app/redux';
-import { setIsSidebarCollapsed } from '@/state';
-import { useGetProjectsQuery } from '@/state/api';
-import { AlertCircle, AlertOctagon, AlertTriangle, Briefcase, ChevronDown, ChevronUp, Home, Layers3, LockIcon, LucideIcon, Search, Settings, ShieldAlert, User, Users, X, Globe } from 'lucide-react';
+import { setIsSidebarCollapsed } from '@/lib/globalSlice';
+import { AlertCircle, AlertOctagon, AlertTriangle, Briefcase, ChevronDown, ChevronUp, Home, Layers3, LockIcon, LucideIcon, Search, ShieldAlert, User, Users, X, Globe, Mail } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useState } from 'react'; 
+import React, { useState, useEffect } from 'react'; 
+import { getProjects } from '@/actions/projects';
 
 // Constants for Sidebar Navigations
 const SidebarNavLinks = [ 
@@ -26,11 +26,6 @@ const SidebarNavLinks = [
         href: "/search",
     }, 
     { 
-        icon:Settings, 
-        label:"Settings", 
-        href: "/settings",
-    }, 
-    { 
         icon:User, 
         label:"Users", 
         href: "/users",
@@ -44,6 +39,11 @@ const SidebarNavLinks = [
         icon: Globe, 
         label:"Community", 
         href: "/community",
+    },
+    { 
+        icon: Mail, 
+        label:"Invitations", 
+        href: "/invitations",
     },
 ]
 
@@ -78,13 +78,25 @@ const PriorityLinks = [
 const Sidebar = () => {
     const [showProjects, setshowProjects] = useState(true); 
     const [showPriority, setShowPriority] = useState(true); 
+    const [projects, setProjects] = useState<any[]>([]);
 
-
-    const {data:projects} = useGetProjectsQuery(); 
     const dispatch = useAppDispatch(); 
     const isSidebarCollapsed = useAppSelector(
         (state) => state.global.isSidebarCollapsed
     )
+
+    // Fetch projects using Server Action
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const data = await getProjects();
+                setProjects(data);
+            } catch (error) {
+                console.error('Failed to fetch projects:', error);
+            }
+        };
+        fetchProjects();
+    }, []);
 
 
     const sidebarClassNames = `fixed flex   flex-col h-full justify-between shadow-xl transition-all duration-300 h-full z-40 dark:bg-black overflow-y-auto bg-white ${isSidebarCollapsed ? 'w-0 hidden' : 'w-64'}` 

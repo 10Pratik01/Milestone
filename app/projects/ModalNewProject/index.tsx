@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { formatISO } from "date-fns";
 import Modal from "@/app/(components)/Modal"
-import { useCreateProjectMutation } from '@/state/api'
+import { createProject } from "@/actions/projects";
 
 type Props = {
     isOpen: boolean
@@ -9,7 +9,7 @@ type Props = {
 }
 
 const ModalNewProject = ({isOpen, onClose}: Props) => {
-    const [createProject, {isLoading}] = useCreateProjectMutation();
+    const [isLoading, setIsLoading] = useState(false);
     const [projectName, setProjectName] = useState("");
     const [description, setDescription] = useState("");
     const [startDate, setStartDate] = useState("");
@@ -18,28 +18,33 @@ const ModalNewProject = ({isOpen, onClose}: Props) => {
     const handleSubmit = async () => {
     if (!projectName || !startDate || !endDate) return;
 
-    const formattedStartDate = formatISO(new Date(startDate), {
-      representation: "complete",
-    });
-    const formattedEndDate = formatISO(new Date(endDate), {
-      representation: "complete",
-    });
+    setIsLoading(true);
+    try {
+      const formattedStartDate = formatISO(new Date(startDate), {
+        representation: "complete",
+      });
+      const formattedEndDate = formatISO(new Date(endDate), {
+        representation: "complete",
+      });
 
-    console.log("formattedStartDate", formattedStartDate);
-    console.log("formattedEndDate", formattedEndDate);
-    console.log("projectName", projectName);
-    console.log("description", description);
+      await createProject({
+        name: projectName,
+        description,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+      });
 
-    const res = await createProject({
-      name: projectName,
-      description,
-      startDate: formattedStartDate,
-      endDate: formattedEndDate,
-    });
-
-    console.log("result", res); 
-
-
+      // Close modal and reset form
+      onClose();
+      setProjectName("");
+      setDescription("");
+      setStartDate("");
+      setEndDate("");
+    } catch (error) {
+      console.error("Failed to create project:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const isFormValid = () => {
@@ -94,7 +99,7 @@ const ModalNewProject = ({isOpen, onClose}: Props) => {
                 }`}
                 disabled={!isFormValid() || isLoading}
             >
-                {isLoading ? <div>Creating...</div>: "Create Project"}
+                {isLoading ? "Creating..." : "Create Project"}
             </button>
         </form>
     </Modal>

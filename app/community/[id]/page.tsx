@@ -41,6 +41,12 @@ type PostDetail = {
   comments: Comment[];
 };
 
+import { getPost, votePost, createComment } from "@/actions/community";
+
+// ... existing imports
+
+// ... existing types (Note: createdAt types might need adjustment if Prisma returns Date)
+
 export default function PostDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -52,13 +58,8 @@ export default function PostDetailPage() {
 
   const fetchPost = async () => {
     try {
-      const res = await fetch(`/api/community/posts/${params.id}`);
-      const data = await res.json();
-      if (data.success) {
-        setPost(data.data);
-      } else {
-        // Handle error (e.g., 404)
-      }
+      const data = await getPost(Number(params.id));
+      setPost(data as any); 
     } catch (error) {
       console.error("Failed to fetch post", error);
     } finally {
@@ -97,11 +98,7 @@ export default function PostDetailPage() {
     setPost({ ...post, voteCount: newVoteCount, userVote: newUserVote });
 
     try {
-      await fetch(`/api/community/posts/${post.id}/vote`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type }),
-      });
+      await votePost(post.id, type);
     } catch (error) {
       // Revert on error
       setPost(previousPost);
@@ -115,18 +112,10 @@ export default function PostDetailPage() {
 
     setIsSubmittingComment(true);
     try {
-      const res = await fetch(`/api/community/posts/${post.id}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: commentText }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setCommentText("");
-        // Refresh post to see new comment
-        fetchPost();
-      }
+      await createComment(post.id, commentText);
+      setCommentText("");
+      // Refresh post to see new comment
+      fetchPost();
     } catch (error) {
       console.error("Failed to post comment", error);
     } finally {

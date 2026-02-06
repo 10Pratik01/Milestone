@@ -16,6 +16,8 @@ if (!connectionString) {
   throw new Error("DATABASE_URL environment variable is not set");
 }
 
+console.log(connectionString, "This is the connection string")
+
 // Create a connection pool with extended timeout settings for Neon
 const pool = global.pool ?? new Pool({ 
   connectionString,
@@ -41,8 +43,8 @@ if (process.env.NODE_ENV !== "production") {
 const adapter = new PrismaPg(pool);
 
 const createClient = () => new PrismaClient({
-  adapter,
-  log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+  adapter: new PrismaPg(pool),
+
 });
 
 export const db =

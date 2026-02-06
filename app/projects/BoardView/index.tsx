@@ -1,41 +1,68 @@
 "use client"
-import { useGetTasksQuery, useUpdateTaskStatusMutation } from '@/state/api'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {DndProvider, DropTargetMonitor, useDrag, useDrop} from 'react-dnd'
 import {HTML5Backend} from 'react-dnd-html5-backend'
-import {Task as TaskType} from "@/state/api"
 import { EllipsisVertical, MessageSquareMore, Plus } from 'lucide-react'
 import {format} from 'date-fns'
 import Image from 'next/image'
 import Loader from '@/app/(components)/Loader'
-
+import { getTasks, updateTaskStatus } from '@/actions/tasks'
+import type { Task as TaskType } from '@prisma/client' // Or inferred type
 
 type BoardProps = {
     id: string, 
     setIsModalNewTaskOpen: (isOpen: boolean) => void
+    setIsModalTaskDetailsOpen: (taskId: number) => void
 }
 
 const taskStatus = ["To Do", "Work In Progress", "Under Review", "Completed"]
 
-
 type TasksColumnProps = {
     status : string, 
-    tasks : TaskType[], 
+    tasks : any[], // Using any[] to handle joined data for now
     moveTask: (taskId: number, toStatus: string) => void, 
     setIsModalNewTaskOpen : (isOpen: boolean) => void;
+    setIsModalTaskDetailsOpen: (taskId: number) => void
 }
 
-const BoardView = ({id, setIsModalNewTaskOpen}: BoardProps) => {
-    const {data: tasks, isLoading, error} = useGetTasksQuery({projectId: Number(id)})
-    const [updateTaskStatus] = useUpdateTaskStatusMutation(); 
+const BoardView = ({id, setIsModalNewTaskOpen, setIsModalTaskDetailsOpen}: BoardProps) => {
+    // ... useEffect, moveTask ...
+    const [tasks, setTasks] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                setIsLoading(true)
+                const data = await getTasks(Number(id))
+                setTasks(data)
+            } catch (err) {
+                setError("Error loading tasks")
+                console.error(err)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        fetchTasks()
+    }, [id])
+
     
-    
-    const moveTask = (taskId: number, toStatus: string) => {
-        updateTaskStatus({ taskId, status: toStatus });
+    const moveTask = async (taskId: number, toStatus: string) => {
+        try {
+            // Optimistic update
+            setTasks(prev => prev.map(task => 
+                task.id === taskId ? { ...task, status: toStatus } : task
+            ));
+            await updateTaskStatus(taskId, toStatus);
+        } catch (error) {
+            console.error("Failed to update task status:", error);
+            // Revert changes if needed, but for now just logging
+        }
     };
   
     if(isLoading) return <div><Loader/></div>
-    if(error) return (<> {tasks} <div>Error</div></>)
+    if(error) return (<div>Error: {error}</div>)
 
     return (
     <DndProvider backend={HTML5Backend}> 
@@ -47,6 +74,7 @@ const BoardView = ({id, setIsModalNewTaskOpen}: BoardProps) => {
                 tasks={tasks || []} 
                 moveTask={moveTask}
                 setIsModalNewTaskOpen={setIsModalNewTaskOpen}
+                setIsModalTaskDetailsOpen={setIsModalTaskDetailsOpen}
             />
         ))}
     </div>
@@ -54,15 +82,13 @@ const BoardView = ({id, setIsModalNewTaskOpen}: BoardProps) => {
   )
 }
 
-
-
 const TaskColumn = ({
     status, 
     tasks, 
     moveTask, 
-    setIsModalNewTaskOpen
+    setIsModalNewTaskOpen,
+    setIsModalTaskDetailsOpen
 }: TasksColumnProps) => {
-    console.log(`This is the status from task column ${status}`)
 
     const[{isOver}, drop] = useDrop(() => ({
         accept: 'task', 
@@ -113,14 +139,15 @@ const TaskColumn = ({
                 </div>
 
                 {tasks.filter((task) => task.status === status).map((task) => (
-                    <Task key={task.id} task={task} /> 
+                    <Task key={task.id} task={task} setIsModalTaskDetailsOpen={setIsModalTaskDetailsOpen}/> 
                 ))}
             </div>
     )
 }
 
 type TasksProps = {
-    task: TaskType 
+    task: any // Using any to handle joined data 
+    setIsModalTaskDetailsOpen: (taskId: number) => void
 }
 
 const PriorityTag = ({priority} : {priority: TaskType["priority"]}) => (
@@ -137,7 +164,7 @@ const PriorityTag = ({priority} : {priority: TaskType["priority"]}) => (
       }`}>{priority}</div>
     ); 
 
-const Task = ({task} : TasksProps) => {
+const Task = ({task, setIsModalTaskDetailsOpen} : TasksProps) => {
     const [{ isDragging }, drag] = useDrag(() => ({
     type: "task",
     item: { id: task.id },
@@ -155,9 +182,11 @@ const Task = ({task} : TasksProps) => {
     const numberOfComments = (task.comments && task.comments.length) || 0 
 
     return (
-        <div ref={(instance) => {
-            drag(instance);
-        }} className={`mb-4 rounded-md bg-white shadow dark:bg-dark-secondary ${ isDragging ? "opacity-50" : "opacity-100"}`}>
+        <div 
+        ref={(instance) => { drag(instance); }} 
+        className={`mb-4 rounded-md bg-white shadow dark:bg-dark-secondary ${ isDragging ? "opacity-50" : "opacity-100"} cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-tertiary transition-colors`}
+        onClick={() => setIsModalTaskDetailsOpen(task.id)}
+        >
             {task.attachments && task.attachments.length > 0 && (
                 <Image src={`/${task.attachments[0].fileURL}`} alt={task.attachments[0].fileName || "Task Attachment"} width={500} height={200} className='h-auto w-full rounded-t-md' /> 
             )}
@@ -166,7 +195,7 @@ const Task = ({task} : TasksProps) => {
                     <div className='flex flex-1 flex-wrap items-center gap-2'>
                         {task.priority && <PriorityTag priority={task.priority} /> }
                         <div className='flex gap-2'>
-                            {taskTagsSplit.map((tag) => (
+                            {taskTagsSplit.map((tag: string) => (
                                 <div key={tag} className='rounded-full bg-blue-100 dark:bg-gray-900 px-4 py-2 text-xs'>
                                     {" "}
                                     {tag}
@@ -199,16 +228,40 @@ const Task = ({task} : TasksProps) => {
                 {/* Users  */}
                 <div className='mt-3 flex items-center justify-between'>
                     <div className='flex -space-x-1.5 overflow-hidden'>
-                        {task.assignee?.userId &&
-                         <Image key={task.assignee.userId}
-                         src={`/${task.assignee.profilePictureUrl!}`} alt={task.assignee?.username} width={20} height={20} className='h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary' 
-                         /> 
-                        }
-                        {task.author?.userId &&
-                         <Image key={task.author.userId}
-                         src={`/${task.author.profilePictureUrl!}`} alt={task.author?.username} width={20} height={20} className='h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary' 
-                         /> 
-                        }
+                    <div className='flex -space-x-1.5 overflow-hidden'>
+                        {task.assignee && (
+                             task.assignee.profilePictureUrl ? (
+                                <Image 
+                                    key={task.assignee.userId}
+                                    src={`/${task.assignee.profilePictureUrl}`} 
+                                    alt={task.assignee.username} 
+                                    width={30} 
+                                    height={30} 
+                                    className='h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary' 
+                                />
+                             ) : (
+                                <div key={task.assignee.userId} className="h-8 w-8 flex items-center justify-center rounded-full bg-gray-200 border-2 border-white dark:border-dark-secondary dark:bg-zinc-800 text-xs font-semibold">
+                                     {task.assignee.username.charAt(0).toUpperCase()}
+                                </div>
+                             )
+                        )}
+                        {task.author && (
+                             task.author.profilePictureUrl ? (
+                                <Image 
+                                    key={task.author.userId}
+                                    src={`/${task.author.profilePictureUrl}`} 
+                                    alt={task.author.username} 
+                                    width={30} 
+                                    height={30} 
+                                    className='h-8 w-8 rounded-full border-2 border-white object-cover dark:border-dark-secondary' 
+                                /> 
+                             ) : (
+                                <div key={task.author.userId} className="h-8 w-8 flex items-center justify-center rounded-full bg-gray-200 border-2 border-white dark:border-dark-secondary dark:bg-zinc-800 text-xs font-semibold">
+                                     {task.author.username.charAt(0).toUpperCase()}
+                                </div>
+                             )
+                        )}
+                    </div>
                     </div>
                     <div className='flex items-center text-gray-500 dark:text-neutral-500'>
                         <MessageSquareMore size={20} />

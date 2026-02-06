@@ -1,187 +1,198 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
 }
 
 // ============================================
 // USER MODEL - Enhanced with Clerk
 // ============================================
 model User {
-    userId            Int      @id @default(autoincrement())
-    clerkId           String   @unique
-    username          String   @unique
-    email             String   @unique
-    profilePictureUrl String?
-    teamId            Int?
-    createdAt         DateTime @default(now())
-    updatedAt         DateTime @updatedAt
+  userId            Int      @id @default(autoincrement())
+  clerkId           String   @unique
+  username          String   @unique
+  email             String   @unique
+  profilePictureUrl String?
+  teamId            Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-    // Relations
-    authorTasks     Task[]           @relation("TaskAuthor")
-    assignedTasks   Task[]           @relation("TaskAssignee")
-    taskAssignments TaskAssignment[]
-    attachments     Attachment[]
-    comments        Comment[]
-    activities      Activity[]
-    timeEntries     TimeEntry[]
-    posts           Post[] // Community Platform
-    votes           Vote[] // Community Platform
-    team            Team?            @relation(fields: [teamId], references: [id])
+  // Relations
+  authorTasks         Task[]           @relation("TaskAuthor")
+  assignedTasks       Task[]           @relation("TaskAssignee")
+  taskAssignments     TaskAssignment[]
+  attachments         Attachment[]
+  comments            Comment[]
+  activities          Activity[]
+  timeEntries         TimeEntry[]
+  posts               Post[] // Community Platform
+  votes               Vote[] // Community Platform
+  team                Team?            @relation(fields: [teamId], references: [id])
+  notifications       Notification[]
+  sentInvitations     Invitation[]     @relation("InvitationSender")
+  receivedInvitations Invitation[]     @relation("InvitationReceiver")
+  projectLogs         ProjectLog[]
+  projectChats        ProjectChat[]
+  ownedProjects       Project[]        @relation("ProjectOwner")
+  ownedTeams          Team[]           @relation("TeamOwner")
 
-    @@index([clerkId])
-    @@index([email])
-    @@index([teamId])
+  @@index([clerkId])
+  @@index([email])
+  @@index([teamId])
 }
 
 // ============================================
 // TEAM MODEL
 // ============================================
 model Team {
-    id                   Int      @id @default(autoincrement())
-    teamName             String
-    productOwnerUserId   Int?
-    projectManagerUserId Int?
-    createdAt            DateTime @default(now())
-    updatedAt            DateTime @updatedAt
+  id                   Int      @id @default(autoincrement())
+  teamName             String
+  productOwnerUserId   Int?
+  projectManagerUserId Int?
+  ownerUserId          Int? // NEW: Creator/Owner of the team
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-    projectTeams ProjectTeam[]
-    users        User[]
+  projectTeams ProjectTeam[]
+  users        User[]
+  owner        User?         @relation("TeamOwner", fields: [ownerUserId], references: [userId])
 
-    @@index([teamName])
+  @@index([teamName])
 }
 
 // ============================================
 // PROJECT MODEL - Enhanced
 // ============================================
 model Project {
-    id          Int       @id @default(autoincrement())
-    name        String
-    description String    @db.Text
-    startDate   DateTime?
-    endDate     DateTime?
-    status      String    @default("active") // active, completed, archived
-    createdAt   DateTime  @default(now())
-    updatedAt   DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String    @db.Text
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String    @default("active") // active, completed, archived
+  ownerUserId Int? // NEW: Creator/Owner of the project
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-    tasks        Task[]
-    projectTeams ProjectTeam[]
-    activities   Activity[]
+  tasks        Task[]
+  projectTeams ProjectTeam[]
+  activities   Activity[]
+  invitations  Invitation[] // Relation to Invitation
+  owner        User?         @relation("ProjectOwner", fields: [ownerUserId], references: [userId])
 
-    @@index([status])
-    @@index([name])
+  @@index([status])
+  @@index([name])
 }
 
 // ============================================
 // PROJECT TEAM (Many-to-Many)
 // ============================================
 model ProjectTeam {
-    id        Int @id @default(autoincrement())
-    teamId    Int
-    projectId Int
+  id        Int @id @default(autoincrement())
+  teamId    Int
+  projectId Int
 
-    team    Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
-    project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  team    Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-    @@unique([teamId, projectId])
-    @@index([teamId])
-    @@index([projectId])
+  @@unique([teamId, projectId])
+  @@index([teamId])
+  @@index([projectId])
 }
 
 // ============================================
 // TASK MODEL - Enhanced with Time Tracking
 // ============================================
 model Task {
-    id             Int       @id @default(autoincrement())
-    title          String
-    description    String?   @db.Text
-    status         String?   @default("To Do")
-    priority       String?   @default("Medium")
-    tags           String?
-    startDate      DateTime?
-    dueDate        DateTime?
-    points         Int?
-    estimatedHours Float? // NEW: For time tracking
-    projectId      Int
-    authorUserId   Int
-    assignedUserId Int?
-    createdAt      DateTime  @default(now())
-    updatedAt      DateTime  @updatedAt
+  id             Int       @id @default(autoincrement())
+  title          String
+  description    String?   @db.Text
+  status         String?   @default("To Do")
+  priority       String?   @default("Medium")
+  tags           String?
+  startDate      DateTime?
+  dueDate        DateTime?
+  points         Int?
+  estimatedHours Float? // NEW: For time tracking
+  projectId      Int
+  authorUserId   Int
+  assignedUserId Int?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-    // Relations
-    project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    author          User             @relation("TaskAuthor", fields: [authorUserId], references: [userId])
-    assignee        User?            @relation("TaskAssignee", fields: [assignedUserId], references: [userId])
-    taskAssignments TaskAssignment[]
-    attachments     Attachment[]
-    comments        Comment[]
-    activities      Activity[]
-    timeEntries     TimeEntry[] // NEW: Time tracking
-    dependencies    TaskDependency[] @relation("DependentTask") // NEW: Task dependencies
-    dependents      TaskDependency[] @relation("DependsOnTask") // NEW: Task dependencies
+  // Relations
+  project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author          User             @relation("TaskAuthor", fields: [authorUserId], references: [userId])
+  assignee        User?            @relation("TaskAssignee", fields: [assignedUserId], references: [userId])
+  taskAssignments TaskAssignment[]
+  attachments     Attachment[]
+  comments        Comment[]
+  activities      Activity[]
+  timeEntries     TimeEntry[] // NEW: Time tracking
+  dependencies    TaskDependency[] @relation("DependentTask") // NEW: Task dependencies
+  dependents      TaskDependency[] @relation("DependsOnTask") // NEW: Task dependencies
 
-    @@index([projectId])
-    @@index([authorUserId])
-    @@index([assignedUserId])
-    @@index([status])
-    @@index([priority])
-    @@index([dueDate])
+  @@index([projectId])
+  @@index([authorUserId])
+  @@index([assignedUserId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
 }
 
 // ============================================
 // TASK DEPENDENCY - NEW for Gantt improvements
 // ============================================
 model TaskDependency {
-    id             Int    @id @default(autoincrement())
-    taskId         Int // The task that depends on another
-    dependsOnId    Int // The task it depends on
-    dependencyType String @default("finish-to-start") // finish-to-start, start-to-start, etc.
+  id             Int    @id @default(autoincrement())
+  taskId         Int // The task that depends on another
+  dependsOnId    Int // The task it depends on
+  dependencyType String @default("finish-to-start") // finish-to-start, start-to-start, etc.
 
-    task      Task @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
-    dependsOn Task @relation("DependsOnTask", fields: [dependsOnId], references: [id], onDelete: Cascade)
+  task      Task @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOn Task @relation("DependsOnTask", fields: [dependsOnId], references: [id], onDelete: Cascade)
 
-    @@unique([taskId, dependsOnId])
-    @@index([taskId])
-    @@index([dependsOnId])
+  @@unique([taskId, dependsOnId])
+  @@index([taskId])
+  @@index([dependsOnId])
 }
 
 // ============================================
 // ATTACHMENT - Enhanced with metadata
 // ============================================
 model Attachment {
-    id           Int      @id @default(autoincrement())
-    fileURL      String
-    fileName     String?
-    fileSize     Int? // NEW: File size in bytes
-    fileType     String? // NEW: MIME type
-    taskId       Int
-    uploadedById Int
-    createdAt    DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  fileURL      String
+  fileName     String?
+  fileSize     Int? // NEW: File size in bytes
+  fileType     String? // NEW: MIME type
+  taskId       Int
+  uploadedById Int
+  createdAt    DateTime @default(now())
 
-    task     Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-    uploader User @relation(fields: [uploadedById], references: [userId])
+  task     Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploader User @relation(fields: [uploadedById], references: [userId])
 
-    @@index([taskId])
-    @@index([uploadedById])
+  @@index([taskId])
+  @@index([uploadedById])
 }
 
 // ============================================
 // TASK ASSIGNMENT
 // ============================================
 model TaskAssignment {
-    id     Int @id @default(autoincrement())
-    userId Int
-    taskId Int
+  id     Int @id @default(autoincrement())
+  userId Int
+  taskId Int
 
-    user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-    task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-    @@unique([userId, taskId])
-    @@index([userId])
-    @@index([taskId])
+  @@unique([userId, taskId])
+  @@index([userId])
+  @@index([taskId])
 }
 
 // ============================================
@@ -191,140 +202,229 @@ model TaskAssignment {
 // COMMENT - Enhanced with mentions
 // ============================================
 model Comment {
-    id        Int      @id @default(autoincrement())
-    text      String   @db.Text
-    mentions  String? // NEW: JSON array of mentioned user IDs
-    taskId    Int?
-    postId    Int? // NEW: For Community Platform
-    userId    Int
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  text      String   @db.Text
+  mentions  String? // NEW: JSON array of mentioned user IDs
+  taskId    Int?
+  postId    Int? // NEW: For Community Platform
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    task Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
-    post Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
-    user User  @relation(fields: [userId], references: [userId])
+  task Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  post Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User  @relation(fields: [userId], references: [userId])
 
-    @@index([taskId])
-    @@index([postId])
-    @@index([userId])
-    @@index([createdAt])
+  @@index([taskId])
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 // ============================================
 // ACTIVITY FEED - NEW
 // ============================================
 model Activity {
-    id         Int      @id @default(autoincrement())
-    userId     Int
-    action     String // created_task, updated_status, assigned_task, etc.
-    entityType String // task, project, comment, etc.
-    entityId   Int
-    projectId  Int? // Optional: link to project for filtering
-    metadata   Json? // Additional data (old value, new value, etc.)
-    createdAt  DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  action     String // created_task, updated_status, assigned_task, etc.
+  entityType String // task, project, comment, etc.
+  entityId   Int
+  projectId  Int? // Optional: link to project for filtering
+  metadata   Json? // Additional data (old value, new value, etc.)
+  createdAt  DateTime @default(now())
 
-    user    User     @relation(fields: [userId], references: [userId])
-    project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-    task    Task?    @relation(fields: [taskId], references: [id])
-    taskId  Int?
+  user    User     @relation(fields: [userId], references: [userId])
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task    Task?    @relation(fields: [taskId], references: [id])
+  taskId  Int?
 
-    @@index([userId])
-    @@index([projectId])
-    @@index([entityType, entityId])
-    @@index([createdAt])
+  @@index([userId])
+  @@index([projectId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }
 
 // ============================================
 // TIME ENTRY - NEW for Time Tracking
 // ============================================
 model TimeEntry {
-    id          Int      @id @default(autoincrement())
-    taskId      Int
-    userId      Int
-    hours       Float
-    description String?  @db.Text
-    date        DateTime @default(now())
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  taskId      Int
+  userId      Int
+  hours       Float
+  description String?  @db.Text
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-    task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-    user User @relation(fields: [userId], references: [userId])
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId])
 
-    @@index([taskId])
-    @@index([userId])
-    @@index([date])
+  @@index([taskId])
+  @@index([userId])
+  @@index([date])
 }
 
 // ============================================
 // PROJECT TEMPLATE - NEW
 // ============================================
 model ProjectTemplate {
-    id           Int      @id @default(autoincrement())
-    name         String
-    description  String   @db.Text
-    category     String? // e.g., "Software Development", "Marketing Campaign"
-    isPublic     Boolean  @default(false)
-    createdById  Int?
-    templateData Json // Stores project structure, tasks, etc.
-    createdAt    DateTime @default(now())
-    updatedAt    DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  name         String
+  description  String   @db.Text
+  category     String? // e.g., "Software Development", "Marketing Campaign"
+  isPublic     Boolean  @default(false)
+  createdById  Int?
+  templateData Json // Stores project structure, tasks, etc.
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-    @@index([category])
-    @@index([isPublic])
+  @@index([category])
+  @@index([isPublic])
 }
 
 // ============================================
 // AI INSIGHT - NEW for AI-powered features
 // ============================================
 model AIInsight {
-    id          Int      @id @default(autoincrement())
-    projectId   Int?
-    taskId      Int?
-    insightType String // priority_suggestion, deadline_warning, resource_allocation, etc.
-    title       String
-    description String   @db.Text
-    confidence  Float // 0.0 to 1.0
-    metadata    Json? // Additional AI-generated data
-    isRead      Boolean  @default(false)
-    createdAt   DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  projectId   Int?
+  taskId      Int?
+  insightType String // priority_suggestion, deadline_warning, resource_allocation, etc.
+  title       String
+  description String   @db.Text
+  confidence  Float // 0.0 to 1.0
+  metadata    Json? // Additional AI-generated data
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
-    @@index([projectId])
-    @@index([taskId])
-    @@index([insightType])
-    @@index([isRead])
-    @@index([createdAt])
+  @@index([projectId])
+  @@index([taskId])
+  @@index([insightType])
+  @@index([isRead])
+  @@index([createdAt])
 }
 
 // ============================================
 // COMMUNITY PLATFORM - NEW
 // ============================================
 model Post {
-    id        Int      @id @default(autoincrement())
-    title     String
-    content   String   @db.Text
-    tags      String? // Comma separated tags
-    authorId  Int
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  tags      String? // Comma separated tags
+  authorId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    author   User      @relation(fields: [authorId], references: [userId])
-    votes    Vote[]
-    comments Comment[]
+  author   User      @relation(fields: [authorId], references: [userId])
+  votes    Vote[]
+  comments Comment[]
 
-    @@index([authorId])
-    @@index([createdAt])
+  @@index([authorId])
+  @@index([createdAt])
 }
 
 model Vote {
-    id     Int    @id @default(autoincrement())
-    postId Int
-    userId Int
-    type   String // "UP" or "DOWN"
+  id     Int    @id @default(autoincrement())
+  postId Int
+  userId Int
+  type   String // "UP" or "DOWN"
 
-    post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-    user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-    @@unique([postId, userId])
-    @@index([postId])
-    @@index([userId])
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+// ============================================
+// NOTIFICATION SYSTEM - NEW
+// ============================================
+model Notification {
+  id           Int      @id @default(autoincrement())
+  userId       Int // Recipient
+  type         String // TASK_ASSIGNED, COMMENT_MENTION, INVITATION, etc.
+  title        String
+  message      String   @db.Text
+  isRead       Boolean  @default(false)
+  taskId       Int?
+  projectId    Int?
+  invitationId Int?
+  metadata     Json? // Additional context
+  createdAt    DateTime @default(now())
+
+  user       User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  invitation Invitation? @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// ============================================
+// INVITATION SYSTEM - NEW
+// ============================================
+model Invitation {
+  id            Int       @id @default(autoincrement())
+  senderId      Int
+  receiverEmail String
+  receiverId    Int? // Set when user accepts
+  projectId     Int
+  status        String    @default("PENDING") // PENDING, ACCEPTED, DECLINED
+  message       String?   @db.Text
+  createdAt     DateTime  @default(now())
+  respondedAt   DateTime?
+
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sender        User           @relation("InvitationSender", fields: [senderId], references: [userId], onDelete: Cascade)
+  receiver      User?          @relation("InvitationReceiver", fields: [receiverId], references: [userId], onDelete: Cascade)
+  notifications Notification[]
+
+  @@index([senderId])
+  @@index([receiverEmail])
+  @@index([receiverId])
+  @@index([projectId])
+  @@index([status])
+}
+
+// ============================================
+// PROJECT LOG - NEW (Activity tracking for projects)
+// ============================================
+model ProjectLog {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  userId      Int
+  action      String // CREATED_TASK, UPDATED_STATUS, COMMENTED, etc.
+  entityType  String // task, comment, etc.
+  entityId    Int?
+  description String   @db.Text
+  metadata    Json? // Additional context
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ============================================
+// PROJECT CHAT - NEW (Async messaging for projects)
+// ============================================
+model ProjectChat {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  userId    Int
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([createdAt])
 }

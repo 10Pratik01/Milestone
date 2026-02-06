@@ -2,21 +2,21 @@
 
 import Header from "@/app/(components)/Header";
 import ModalNewTask from "@/app/(components)/ModalNewTask";
+import ModalTaskDetails from "@/app/(components)/ModalTaskDetails";
 import TaskCard from "@/app/(components)/TaskCard";
 import { useAppSelector } from "@/app/redux";
 
 import { dataGridClassNames, dataGridSxStyles } from "@/lib/utils";
-import {
-  Priority,
-  Task,
-  useGetTasksByUserQuery,
-} from "@/state/api";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { PlusSquare } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getMyTasks } from "@/actions/tasks";
+import type { Task } from "@prisma/client";
 
+// Define locally since we removed api.ts types or import from prisma if available
+// For Priority prop, we can just use string or import strictly if needed
 type Props = {
-  priority: Priority;
+  priority: string;
 };
 
 const columns: GridColDef[] = [
@@ -64,44 +64,67 @@ const columns: GridColDef[] = [
     field: "author",
     headerName: "Author",
     width: 150,
-    renderCell: (params) => params.value.username || "Unknown",
+    renderCell: (params) => params.value?.username || "Unknown",
   },
   {
     field: "assignee",
     headerName: "Assignee",
     width: 150,
-    renderCell: (params) => params.value.username || "Unassigned",
+    renderCell: (params) => params.value?.username || "Unassigned",
   },
 ];
 
 const  ReusablePriorityPage = ({ priority }: Props) => {
   const [view, setView] = useState("list");
   const [isModalNewTaskOpen, setIsModalNewTaskOpen] = useState(false);
+  const [isModalTaskDetailsOpen, setIsModalTaskDetailsOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
-  const userId = 1; 
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getMyTasks(); // Uses auth() on server
+        setTasks(data);
+      } catch (error) {
+        console.error("Failed to fetch tasks:", error);
+        setIsError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const {
-    data: tasks,
-    isLoading,
-    isError: isTasksError,
-  } = useGetTasksByUserQuery(userId || 0, {
-    skip: userId === null,
-  });
+    fetchTasks();
+  }, []);
 
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
   const filteredTasks = tasks?.filter(
-    (task: Task) => task.priority === priority,
+    (task: any) => task.priority === priority,
   );
 
-  if (isTasksError || !tasks) return <div>Error fetching tasks</div>;
+  const handleTaskClick = (taskId: number) => {
+      setSelectedTaskId(taskId);
+      setIsModalTaskDetailsOpen(true);
+  }
+
+  if (isError) return <div>Error fetching tasks</div>;
 
   return (
   <div className="mx-6 my-5">
     <ModalNewTask
       isOpen={isModalNewTaskOpen}
       onClose={() => setIsModalNewTaskOpen(false)}
+    />
+    
+    <ModalTaskDetails
+        isOpen={isModalTaskDetailsOpen}
+        onClose={() => setIsModalTaskDetailsOpen(false)}
+        taskId={selectedTaskId}
     />
 
     {/* Header */}
@@ -163,8 +186,8 @@ const  ReusablePriorityPage = ({ priority }: Props) => {
       </div>
     ) : view === "list" ? (
       <div className="flex flex-wrap  gap-10 ">
-        {filteredTasks?.map((task: Task) => (
-          <TaskCard key={task.id} task={task} />
+        {filteredTasks?.map((task: any) => (
+          <TaskCard key={task.id} task={task} onClick={(task) => handleTaskClick(task.id)}/>
         ))}
       </div>
     ) : (
@@ -186,6 +209,7 @@ const  ReusablePriorityPage = ({ priority }: Props) => {
           className={dataGridClassNames}
           sx={dataGridSxStyles(isDarkMode)}
           autoHeight
+          onRowClick={(params) => handleTaskClick(params.row.id as number)}
         />
       </div>
     )}

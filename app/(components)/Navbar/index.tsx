@@ -1,11 +1,13 @@
 'use client';
 
-import React from 'react'; 
-import {Menu, Moon, Search, Settings, Sun} from 'lucide-react'
+import React, { Suspense } from 'react'; 
+import {Menu, Moon, Search, Sun} from 'lucide-react'
 import Link from 'next/link';
 import { UserButton, useAuth } from '@clerk/nextjs';
 import { useAppDispatch, useAppSelector } from '@/app/redux';
-import { setIsDarkMode, setIsSidebarCollapsed } from '@/state';
+import { setIsDarkMode, setIsSidebarCollapsed } from '@/lib/globalSlice';
+import NotificationBell from '../NotificationBell';
+import UserSync from '../UserSync';
 
 const Navbar = () => {
     const dispatch = useAppDispatch(); 
@@ -35,19 +37,23 @@ const Navbar = () => {
             </div> 
 
             {/* Icons */}
-            <div className='flex items-center'>
+            <div className='flex items-center gap-2'>
                 {/* Light mode dark mode button */}
-                    <button onClick={() => dispatch(setIsDarkMode(!isDarkMode))} className={`${isDarkMode ? "h-min w-min rounded p-2 dark:hover:bg-gray-700" : `h-min w-min rounded p-2 dark:hover:bg-gray-200`}`}>
+                    <button onClick={() => dispatch(setIsDarkMode(!isDarkMode))} className={`${isDarkMode ? "h-min w-min rounded p-2 dark:hover:bg-gray-700" : `h-min w-min rounded p-2 hover:bg-gray-200`}`}>
                         {isDarkMode ? (
                             <Sun className='h-6 w-6 cursor-pointer dark:text-white' /> 
                         ) : (
                             <Moon className='h-6 w-6 cursor-pointer dark:text-white' /> 
                         )}
                     </button>
-                {/* Settings Icon */}
-                <Link href="/settings" className='h-min w-min rounded p-2 hover:bg-gray-100'>
-                    <Settings className='h-6 w-6 cursor-pointer dark:text-white'/>
-                </Link>
+                
+                {/* Notification Bell */}
+                {isSignedIn && (
+                    <Suspense fallback={<div className="h-6 w-6" />}>
+                        <NotificationBell />
+                        <UserSync />
+                    </Suspense>
+                )}
 
                 <div className='ml-2 mr-5 hidden min-h-8 w-[0.1rem] bg-gray-200 md:inline-block'> </div>
                 

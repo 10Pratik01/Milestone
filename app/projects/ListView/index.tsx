@@ -1,18 +1,41 @@
 "use client"
 
 import Header from "@/app/(components)/Header"
-import { type Task, useGetTasksQuery } from "@/state/api"
 import TaskCard from "@/app/(components)/TaskCard"
 import { Plus } from "lucide-react"
 import Loader from "@/app/(components)/Loader"
+import { getTasks } from "@/actions/tasks"
+import type { Task } from "@prisma/client"
+import React, { useState, useEffect } from "react"
+
 
 type ListProps = {
   id: string
   setIsModalNewTaskOpen: (isOpen: boolean) => void
+  setIsModalTaskDetailsOpen: (taskId: number) => void
 }
 
-const ListView = ({ id, setIsModalNewTaskOpen }: ListProps) => {
-  const { data: tasks, isLoading, error } = useGetTasksQuery({ projectId: Number(id) })
+const ListView = ({ id, setIsModalNewTaskOpen, setIsModalTaskDetailsOpen }: ListProps) => {
+  const [tasks, setTasks] = useState<any[]>([]) // Using any[] temporarily if Task type mismatch with includes, strictly it should be return type of getTasks
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setIsLoading(true)
+        const data = await getTasks(Number(id))
+        setTasks(data)
+      } catch (err) {
+        setError("Error loading tasks")
+        console.error(err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchTasks()
+  }, [id])
 
   if (isLoading)
     return (
@@ -23,7 +46,7 @@ const ListView = ({ id, setIsModalNewTaskOpen }: ListProps) => {
   if (error)
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-destructive">Error loading tasks</div>
+        <div className="text-destructive">{error}</div>
     </div>
      
     )
@@ -48,8 +71,12 @@ const ListView = ({ id, setIsModalNewTaskOpen }: ListProps) => {
 
       {tasks && tasks.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5 mt-6">
-          {tasks?.map((task: Task) => (
-            <TaskCard key={task.id} task={task} />
+          {tasks.map((task: any) => (
+            <TaskCard 
+                key={task.id} 
+                task={task} 
+                onClick={(task) => setIsModalTaskDetailsOpen(task.id)}
+            />
           ))}
         </div>
       ) : (

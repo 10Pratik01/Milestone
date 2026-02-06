@@ -2,18 +2,37 @@ import Loader from '@/app/(components)/Loader'
 import { useAppSelector } from '@/app/redux'
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { dataGridClassNames, dataGridSxStyles } from "../../../lib/utils";
-import { useGetTasksQuery } from '@/state/api'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Header from '@/app/(components)/Header';
+import { getTasks } from '@/actions/tasks';
 
 type Props = {
     id: string
     setIsModalNewTaskOpen: (isOpen: boolean) => void
+    setIsModalTaskDetailsOpen: (taskId: number) => void
 }
 
-const Table = ({id, setIsModalNewTaskOpen}: Props) => {
- const {data: tasks, error, isLoading } = useGetTasksQuery({projectId : Number(id)})
+const Table = ({id, setIsModalNewTaskOpen, setIsModalTaskDetailsOpen}: Props) => {
  const isDarkMode = useAppSelector((state) => state.global.isDarkMode)
+ const [tasks, setTasks] = useState<any[]>([])
+ const [isLoading, setIsLoading] = useState(true)
+ const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setIsLoading(true)
+        const data = await getTasks(Number(id))
+        setTasks(data)
+      } catch (err) {
+        setError("Error loading tasks")
+        console.error(err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchTasks()
+  }, [id])
 
 
   if (isLoading)
@@ -51,6 +70,7 @@ const Table = ({id, setIsModalNewTaskOpen}: Props) => {
         columns={columns}
         className="border border-gray-200 bg-white shadow  dark:border-stroke-dark dark:bg-dark-secondary dark:text-gray-200"
         sx={dataGridSxStyles(isDarkMode)}
+        onRowClick={(params) => setIsModalTaskDetailsOpen(params.row.id)}
       />
     </div>
   )
@@ -102,13 +122,13 @@ const columns: GridColDef[] = [
     field: "author",
     headerName: "Author",
     width: 150,
-    renderCell: (params) => params.value?.author || "Unknown",
+    renderCell: (params) => params.value?.username || "Unknown",
   },
   {
     field: "assignee",
     headerName: "Assignee",
     width: 150,
-    renderCell: (params) => params.value?.assignee || "Unassigned",
+    renderCell: (params) => params.value?.username || "Unassigned",
   },
 ];
 

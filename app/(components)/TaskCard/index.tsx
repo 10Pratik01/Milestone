@@ -1,11 +1,27 @@
-import type { Task } from "@/state/api"
 import { format } from "date-fns"
 import Image from "next/image"
 import { Calendar, Tag, Flag } from "lucide-react"
+import PrioritySelector from "../PrioritySelector"
+
+interface Task {
+  id: number;
+  title: string;
+  description?: string | null;
+  status?: string | null;
+  priority?: string | null;
+  tags?: string | null;
+  startDate?: string | Date | null;
+  dueDate?: string | Date | null;
+  author?: { username: string } | null;
+  assignee?: { username: string } | null;
+  attachments?: { fileURL: string; fileName: string | null }[];
+}
 
 type Props = {
-  task: Task
+  task: Task;
+  onClick?: (task: Task) => void;
 }
+
 
 const getStatusAccent = (status?: string) => {
   switch (status?.toLowerCase()) {
@@ -54,11 +70,14 @@ const Avatar = ({ name }: { name: string }) => (
   </div>
 )
 
-const TaskCard = ({ task }: Props) => {
+const TaskCard = ({ task, onClick }: Props) => {
   return (
-    <div className="bg-amber-50/50 dark:bg-zinc-900/50 group relative min-w-[300px] max-w-[400px] px-2 py-3 overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div 
+      onClick={() => onClick && onClick(task)}
+      className={`bg-amber-50/50 dark:bg-zinc-900/50 group relative min-w-[300px] max-w-[400px] px-2 py-3 overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${onClick ? 'cursor-pointer' : ''}`}
+    >
       {/* Status Accent */}
-      <div className={`absolute left-0 h-6 top-0  w-full ${getStatusAccent(task.status)}`} />
+      <div className={`absolute left-0 h-6 top-0  w-full ${getStatusAccent(task.status ?? undefined)}`} />
 
       {/* Attachment Preview */}
       {task.attachments != undefined && task.attachments?.length > 0 && (
@@ -88,13 +107,18 @@ const TaskCard = ({ task }: Props) => {
 
         {/* Badges */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadge(task.status)}`}>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadge(task.status ?? undefined)}`}>
             {task.status ?? "No Status"}
           </span>
-          <span className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${getPriorityBadge(task.priority)}`}>
+          <span className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${getPriorityBadge(task.priority ?? undefined)}`}>
             <Flag className="h-3 w-3" />
             {task.priority ?? "No Priority"}
           </span>
+        </div>
+
+        {/* Priority Selector */}
+        <div className="flex justify-end">
+          <PrioritySelector taskId={task.id} currentPriority={task.priority ?? undefined} />
         </div>
 
         {/* Tags */}

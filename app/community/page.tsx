@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
+import { getPosts, votePost } from "@/actions/community";
 import { 
   Heart, 
   MessageSquare, 
@@ -23,7 +24,7 @@ type Post = {
     username: string;
     profilePictureUrl: string | null;
   };
-  createdAt: string;
+  createdAt: Date; // Server action returns Date object typically, or string if serialized? Prisma returns Date.
   voteCount: number;
   userVote: "UP" | "DOWN" | null;
   _count: {
@@ -41,11 +42,9 @@ export default function CommunityPage() {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/community/posts?${searchQuery ? `tag=${searchQuery}` : ''}`);
-      const data = await res.json();
-      if (data.success) {
-        setPosts(data.data);
-      }
+      // Server action call
+      const data = await getPosts({ tag: searchQuery });
+      setPosts(data as any); // Type assertion might be needed if Date serialization differs
     } catch (error) {
       console.error("Failed to fetch posts", error);
     } finally {
@@ -83,11 +82,7 @@ export default function CommunityPage() {
     }));
 
     try {
-      await fetch(`/api/community/posts/${postId}/vote`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type }),
-      });
+      await votePost(postId, type);
     } catch (error) {
       console.error("Failed to vote", error);
       // Revert on error (could reuse fetchPosts)

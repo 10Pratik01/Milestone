@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Send } from "lucide-react";
 import Link from "next/link";
+import { createPost } from "@/actions/community";
 
 export default function CreatePostPage() {
   const router = useRouter();
@@ -21,23 +22,12 @@ export default function CreatePostPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/community/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        router.push("/community");
-        router.refresh();
-      } else {
-        setError(data.error?.message || "Failed to create post");
-      }
-    } catch (err) {
+      await createPost(formData);
+      router.push("/community");
+      router.refresh(); // Refresh to show new post? Or revalidatePath in action handles cache, router.refresh handles layout.
+    } catch (err: any) {
       console.error(err);
-      setError("An unexpected error occurred");
+      setError(err.message || "Failed to create post");
     } finally {
       setLoading(false);
     }
@@ -60,7 +50,7 @@ export default function CreatePostPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden dark:text-black">
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {error && (
               <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium border border-red-100">
